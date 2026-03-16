@@ -118,12 +118,19 @@ When you create a **secondary ENI**, it’s like **plugging in a second network 
 
 
 
+### Find Subnets Available in Your VPC
+
+![Step 1 Subnets](screenshots/step1_find_subnets.png)
+
+
+# Pick one subnet ID that you want to create your ENI in.
+
 🔹 **What happens after you run it**
 
 1. AWS creates a **secondary ENI** in the subnet you specified.  
 2. You will get a **JSON output** like this:
 
-```json
+json
 {
     "NetworkInterface": {
         "NetworkInterfaceId": "eni-0a1b2c3d4e5f",
@@ -132,9 +139,14 @@ When you create a **secondary ENI**, it’s like **plugging in a second network 
         ...
     }
 }
+---
 
 
-- The key thing to note the command returns JSON output containing is the NetworkInterfaceId (eni-0a1b2c3d4e5f).
+![Step-2-ENI-CREATION](screenshots/step1_eni.png)
+
+
+
+- - The key thing to note is that the command returns JSON output containing the NetworkInterfaceId (eni-0a1b2c3d4e5f).
 
 - You’ll use this ID in the next steps to attach it to your instance, assign security groups, or associate an Elastic IP.
 
