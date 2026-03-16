@@ -118,35 +118,35 @@ When you create a **secondary ENI**, it’s like **plugging in a second network 
 
 
 
-### Find Subnets Available in Your VPC
+### 🔹Find Subnets Available in Your VPC
 
 ![Step 1 Subnets](screenshots/step1_find_subnets.png)
 
 
-# Pick one subnet ID that you want to create your ENI in.
+🔹 Pick one subnet ID that you want to create your ENI in.
 
 🔹 **What happens after you run it**
 
 1. AWS creates a **secondary ENI** in the subnet you specified.  
 2. You will get a **JSON output** like this:
 
-json
+## json
 {
     "NetworkInterface": {
-        "NetworkInterfaceId": "eni-0a1b2c3d4e5f",
+        "NetworkInterfaceId": "eni-0d83541175ca081f2",
         "SubnetId": "subnet-12345abcde",
         "Description": "Secondary ENI for Assignment",
         ...
     }
 }
----
+
 
 
 ![Step-2-ENI-CREATION](screenshots/step1_eni.png)
 
 
 
-- - The key thing to note is that the command returns JSON output containing the NetworkInterfaceId (eni-0a1b2c3d4e5f).
+- The key thing to note is that the command returns JSON output containing the NetworkInterfaceId (eni-0a1b2c3d4e5f).
 
 - You’ll use this ID in the next steps to attach it to your instance, assign security groups, or associate an Elastic IP.
 
@@ -221,16 +221,169 @@ Instead of creating two separate EC2 instances, you just attach a secondary ENI 
 
 
 
-  🔹Step 2 – Associate a Security Group with the ENI
+
+🔹Step 2 – Associate a Security Group with the ENI
+
+After creating the Secondary Elastic Network Interface (ENI), the next step is to attach a Security Group to it.
+
+A Security Group acts like a virtual firewall that controls incoming and outgoing traffic to your AWS resources.
+
+Instead of protecting the entire instance, a Security Group attached to an ENI protects that specific network interface.
 
 
-aws ec2 modify-network-interface-attribute \
---network-interface-id eni-0a1b2c3d4e5f \
---groups sg-987654321fed
+
+🔹Find Available Security Groups
+
+Before associating a Security Group with the ENI, you need to find the Security Group ID available in your AWS account.
 
 
-This replaces existing security groups with the specified group.
+Run: aws ec2 describe-security-groups
 
+
+output: {
+  "SecurityGroups": [
+    {
+      "GroupName": "web-security-group",
+      "GroupId": "sg-089cd5939a591ad7a",
+      "Description": "Security group for web traffic"
+    }
+  ]
+}
+
+![find the available security group](screenshots/find_security_group_available.png)
+
+
+- The key thing to note is that the command returns JSON output containing the "GroupId": "sg-089cd5939a591ad7a"
+
+- You’ll use this ID in the next steps.
+
+
+🔹Associate the Security Group with the ENI
+
+Run: aws modify-network-interface-attribute --network-interface-id eni-0d83541175ca081f2 --groups sg-089cd5939a591ad7a
+
+![associate SG with ENI](screenshots/associate_sg_with_eni.png)
+
+
+🔹 Run this command to confirm the security group is attached:
+
+![verify aatached ENI](screenshots/verify-attached_eni.png)
+
+
+
+🔹 Show ENI and associated security groups (cleaner output)
+
+![cleaner output](screenshots/show_securityGroup_and_eni.png)
+
+
+⚠️ Note:
+This command replaces existing security groups with the one you specify.
+
+🔹Example Firewall Rules for a Single-Product eCommerce Site
+
+Security Groups control which traffic is allowed to reach your instance.
+
+| Type                               | Protocol | Port(s)      | Source                    | Purpose                                    |
+| ---------------------------------- | -------- | ------------ | ------------------------- | ------------------------------------------ |
+| SSH (Admin access)                 | TCP      | 22           | Your IP only              | Secure server login for maintenance        |
+| HTTP (Website traffic)             | TCP      | 80           | 0.0.0.0/0                 | Public access to the product page          |
+| HTTPS (Secure website)             | TCP      | 443          | 0.0.0.0/0                 | Encrypted access for users                 |
+| RDP (Optional, Windows admin)      | TCP      | 3389         | Your IP only              | Remote desktop access if server is Windows |
+| Database (MySQL/PostgreSQL)        | TCP      | 3306 / 5432  | Private subnet only       | Only app server can access database        |
+| Caching (Redis / Memcached)        | TCP      | 6379 / 11211 | Private subnet only       | Internal cache access for backend services |
+| Internal API / Backend Services    | TCP      | 8080 / 5000  | Private subnet only       | Microservices or backend communication     |
+| Monitoring / NTP / SNMP (Optional) | TCP/UDP  | 161 / 123    | Monitoring server IP only | Network monitoring and time sync           |
+| Ping / ICMP (Optional)             | ICMP     | -            | Your IP only              | Test server connectivity                   |
+
+
+
+
+
+
+This means:
+
+. Only your IP can access SSH (and RDP if applicable).
+
+![allow ssh](screenshots/firewall_rules_allow_ssh.png)
+
+. Anyone on the internet can access HTTP/HTTPS.
+
+
+![public access http/https](screenshots/firewall_rules_allow_http.png)
+
+. All database, cache, and internal APIs are private-only.
+
+
+![database access](screenshots/firewall_db_access.png)
+
+. Default deny all other traffic → secure by default.
+
+
+
+.
+
+🔹What Happens After Running the Command
+
+1. AWS updates the Security Group attached to the ENI.
+
+2. The ENI immediately starts using the new firewall rules.
+
+3. Any traffic must follow the allowed ports defined in the security group.
+
+
+🔹Why This Is Useful
+
+. Traffic Isolation
+
+. Each ENI can have its own Security Group.
+
+. Example: Public web traffic on the primary ENI, internal services on the secondary ENI.
+
+. Better Security
+
+. Restrict SSH/RDP access to only trusted IPs.
+
+. Keep databases, caching, and internal APIs private.
+
+. Minimize exposure to the internet, reducing attack surface.
+
+. Simplified Management
+
+. Updating rules in a Security Group automatically applies to all attached ENIs.
+
+. Easier to audit and maintain firewall rules for your platform.
+
+. Flexible Architecture
+
+. You can separate traffic by function (web, database, internal services).
+
+. Supports scaling without compromising security.
+
+. Compliance and Audit
+
+. Clear, defined firewall rules help meet security standards.
+
+. Makes it easier to demonstrate network-level protections.
+
+
+
+🔹TL;DR
+
+. What: Attach a Security Group (firewall rules) to your ENI.
+
+. Why: To control and isolate traffic—public web access, secure admin access, and private backend services.
+
+. Result:
+
+- Public access allowed only for HTTP/HTTPS.
+
+- Admin access (SSH/RDP) restricted to your IP.
+
+- Database, cache, and internal APIs are private-only.
+
+- All other traffic is blocked by default → stronger security.
+
+  
 
 
   🔹Step 3 – Allocate and Associate an Elastic IP
