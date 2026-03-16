@@ -75,17 +75,19 @@ The command returns JSON output containing a NetworkInterfaceId such as: eni-0a1
 
 
 
-## 🔹Step 2 – Associate a Security Group with the ENI
+  🔹Step 2 – Associate a Security Group with the ENI
+
 
 aws ec2 modify-network-interface-attribute \
 --network-interface-id eni-0a1b2c3d4e5f \
 --groups sg-987654321fed
 
+
 This replaces existing security groups with the specified group.
 
 
 
-## 🔹Step 3 – Allocate and Associate an Elastic IP
+  🔹Step 3 – Allocate and Associate an Elastic IP
 
 🔹Allocate a public IP:
 
@@ -99,7 +101,7 @@ aws ec2 associate-address \
 
 
 
-## 🔹Step 4 – Create Placement Group and Launch EC2
+  🔹Step 4 – Create Placement Group and Launch EC2
 
 🔹Create a cluster placement group:
 
@@ -118,7 +120,7 @@ aws ec2 run-instances \
 
 
 
-## 🔹Step 5 – Enable or Disable Termination Protection
+ 🔹Step 5 – Enable or Disable Termination Protection
 
 🔹Enable termination protection:
 
