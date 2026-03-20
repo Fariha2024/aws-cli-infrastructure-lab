@@ -192,3 +192,17 @@ output: ~ $ # Allow SSH from your IP only
         }
     ]
 }
+
+Run: 
+ aws ec2 describe-security-groups \
+>   --group-ids $DB_SG_ID \
+>   --query "SecurityGroups[*].IpPermissions"
+
+
+From the output you shared:
+
+Port 3306 (MySQL) is now correctly open only for the private subnet 172.31.16.0/20.
+
+Port 80 (HTTP) is open to everyone (0.0.0.0/0), which is normal if this SG also handles web traffic.
+
+This confirms that your database security group is correctly restricted to the private subnet, and the ingress rule is applied.
